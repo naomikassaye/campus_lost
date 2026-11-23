@@ -12,9 +12,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      appBarTheme: const AppBarTheme(
-        centerTitle: false,
-      ),
+      appBarTheme: const AppBarTheme(centerTitle: false),
       inputDecorationTheme: const InputDecorationTheme(
         border: OutlineInputBorder(),
       ),

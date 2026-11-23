@@ -5,11 +5,7 @@ import 'package:campus_lost/app.dart';
 
 void main() {
   testWidgets('CampusLost launches on the login screen', (tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: CampusLostApp(),
-      ),
-    );
+    await tester.pumpWidget(const ProviderScope(child: CampusLostApp()));
 
     await tester.pumpAndSettle();
 

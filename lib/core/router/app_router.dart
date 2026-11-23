@@ -1,63 +1,61 @@
-import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-final GoRouter appRouter = GoRouter(
-  initialLocation: '/login',
-  routes: [
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const PlaceholderPage(title: 'Login / Register'),
-    ),
-    GoRoute(
-      path: '/feed',
-      builder: (context, state) => const PlaceholderPage(title: 'Feed'),
-    ),
-    GoRoute(
-      path: '/items/:itemId',
-      builder: (context, state) => PlaceholderPage(
-        title: 'Item Details: ${state.pathParameters['itemId']}',
-      ),
-    ),
-    GoRoute(
-      path: '/report',
-      builder: (context, state) => const PlaceholderPage(title: 'Report Item'),
-    ),
-    GoRoute(
-      path: '/items/:itemId/claim',
-      builder: (context, state) => PlaceholderPage(
-        title: 'Claim Item: ${state.pathParameters['itemId']}',
-      ),
-    ),
-    GoRoute(
-      path: '/activity',
-      builder: (context, state) => const PlaceholderPage(title: 'My Activity'),
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const PlaceholderPage(title: 'Profile & Settings'),
-    ),
-    GoRoute(
-      path: '/review-claims',
-      builder: (context, state) => const PlaceholderPage(title: 'Review Claims'),
-    ),
-  ],
-);
+import 'package:campus_lost/core/router/app_routes.dart';
+import 'package:campus_lost/core/widgets/placeholder_page.dart';
 
-class PlaceholderPage extends StatelessWidget {
-  const PlaceholderPage({
-    required this.title,
-    super.key,
-  });
+import 'package:campus_lost/features/auth/presentation/login_screen.dart';
+import 'package:campus_lost/features/feed/presentation/feed_screen.dart';
+import 'package:campus_lost/features/item_details/presentation/item_details_screen.dart';
+import 'package:campus_lost/features/report_item/presentation/report_item_screen.dart';
+import 'package:campus_lost/features/claim/presentation/claim_form_screen.dart';
+import 'package:campus_lost/features/my_activity/presentation/my_activity_screen.dart';
+import 'package:campus_lost/features/profile/presentation/profile_screen.dart';
+import 'package:campus_lost/features/review_claims/presentation/review_claims_screen.dart';
 
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(title),
+final routerProvider = Provider<GoRouter>((ref) {
+  return GoRouter(
+    initialLocation: AppRoutes.login,
+    routes: [
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (context, state) => const LoginScreen(),
       ),
-    );
-  }
-}
+      GoRoute(
+        path: AppRoutes.feed,
+        builder: (context, state) => const FeedScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.itemDetailsPattern,
+        builder: (context, state) =>
+            ItemDetailsScreen(itemId: state.pathParameters['itemId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.report,
+        builder: (context, state) => const ReportItemScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.claimFormPattern,
+        builder: (context, state) =>
+            ClaimFormScreen(itemId: state.pathParameters['itemId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.activity,
+        builder: (context, state) => const MyActivityScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profile,
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.reviewClaims,
+        builder: (context, state) {
+          // TODO: Restrict this route to authenticated Custodian users.
+          return const ReviewClaimsScreen();
+        },
+      ),
+    ],
+    errorBuilder: (context, state) =>
+        const PlaceholderPage(title: 'Page not found'),
+  );
+});
