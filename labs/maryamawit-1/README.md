@@ -1,1 +1,0 @@
-# Mariamawit Lemma - Individual Labs
