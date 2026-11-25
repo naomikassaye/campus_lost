@@ -16,6 +16,11 @@
 	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>campus_lost</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Campus Lost needs camera access so you can take photos of found or lost items.</string>
+
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Campus Lost needs photo library access so you can select photos of lost or found items.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

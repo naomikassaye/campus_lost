@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/report_item_provider.dart';
+import 'package:campus_lost/features/report_item/domain/models/report_item_enums.dart';
+import 'package:campus_lost/features/report_item/presentation/providers/report_item_provider.dart';
 
 class ReportTypeSelector extends ConsumerWidget {
   const ReportTypeSelector({super.key});

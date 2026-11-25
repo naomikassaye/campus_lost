@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class ReportSubmitButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final bool isSubmitting;
-
   const ReportSubmitButton({
     super.key,
     required this.onPressed,
     this.isSubmitting = false,
   });
+
+  final VoidCallback onPressed;
+  final bool isSubmitting;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,11 @@ class ReportSubmitButton extends StatelessWidget {
           ),
         ),
         child: isSubmitting
-            ? const CircularProgressIndicator()
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : const Text(
                 'Submit Report',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),

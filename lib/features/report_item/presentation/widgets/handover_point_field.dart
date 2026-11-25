@@ -1,28 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/report_item_provider.dart';
+import 'package:campus_lost/features/report_item/domain/models/report_item_enums.dart';
+import 'package:campus_lost/features/report_item/presentation/providers/report_item_provider.dart';
 
 class HandoverPointField extends ConsumerWidget {
   const HandoverPointField({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final report = ref.watch(reportItemProvider);
-    final notifier = ref.read(reportItemProvider.notifier);
+    final reportType = ref.watch(
+      reportItemProvider.select((state) => state.reportType),
+    );
 
-    if (report.reportType != ReportType.found) {
+    final handoverPoint = ref.watch(
+      reportItemProvider.select((state) => state.handoverPoint),
+    );
+
+    if (reportType != ReportType.found) {
       return const SizedBox.shrink();
     }
 
     return TextFormField(
-      initialValue: report.handoverPoint,
+      key: const ValueKey('handoverPointField'),
+      initialValue: handoverPoint,
       textCapitalization: TextCapitalization.sentences,
       decoration: const InputDecoration(
         labelText: 'Handover Point',
         hintText: 'Where can the owner collect the item?',
         prefixIcon: Icon(Icons.place_outlined),
-        border: OutlineInputBorder(),
       ),
       validator: (value) {
         if (value == null || value.trim().isEmpty) {
@@ -35,7 +41,7 @@ class HandoverPointField extends ConsumerWidget {
 
         return null;
       },
-      onChanged: notifier.setHandoverPoint,
+      onChanged: ref.read(reportItemProvider.notifier).setHandoverPoint,
     );
   }
 }

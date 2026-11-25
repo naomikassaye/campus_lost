@@ -1,58 +1,9 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
-enum ReportType { lost, found }
-
-class ReportItemState {
-  final ReportType reportType;
-  final String title;
-  final String description;
-  final String category;
-  final String location;
-  final String handoverPoint;
-  final XFile? selectedImage;
-  final bool isSubmitting;
-  final String? imageError;
-
-  const ReportItemState({
-    this.reportType = ReportType.lost,
-    this.title = '',
-    this.description = '',
-    this.category = '',
-    this.location = '',
-    this.handoverPoint = '',
-    this.selectedImage,
-    this.isSubmitting = false,
-    this.imageError,
-  });
-
-  ReportItemState copyWith({
-    ReportType? reportType,
-    String? title,
-    String? description,
-    String? category,
-    String? location,
-    String? handoverPoint,
-    XFile? selectedImage,
-    bool clearImage = false,
-    bool? isSubmitting,
-    String? imageError,
-    bool clearImageError = false,
-  }) {
-    return ReportItemState(
-      reportType: reportType ?? this.reportType,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      category: category ?? this.category,
-      location: location ?? this.location,
-      handoverPoint: handoverPoint ?? this.handoverPoint,
-      selectedImage: clearImage ? null : selectedImage ?? this.selectedImage,
-      isSubmitting: isSubmitting ?? this.isSubmitting,
-      imageError: clearImageError ? null : imageError ?? this.imageError,
-    );
-  }
-}
+import '../../data/services/image_picker_service.dart';
+import '../../domain/models/report_item_enums.dart';
+import '../../domain/models/report_item_state.dart';
 
 class ReportItemNotifier extends Notifier<ReportItemState> {
   @override
@@ -61,7 +12,10 @@ class ReportItemNotifier extends Notifier<ReportItemState> {
   }
 
   void setReportType(ReportType type) {
-    state = state.copyWith(reportType: type);
+    state = state.copyWith(
+      reportType: type,
+      handoverPoint: type == ReportType.lost ? '' : state.handoverPoint,
+    );
   }
 
   void setTitle(String value) {
@@ -72,7 +26,7 @@ class ReportItemNotifier extends Notifier<ReportItemState> {
     state = state.copyWith(description: value);
   }
 
-  void setCategory(String value) {
+  void setCategory(ItemCategory? value) {
     state = state.copyWith(category: value);
   }
 
@@ -84,46 +38,58 @@ class ReportItemNotifier extends Notifier<ReportItemState> {
     state = state.copyWith(handoverPoint: value);
   }
 
-  Future<void> pickImage(ImageSource source) async {
-    state = state.copyWith(clearImageError: true);
+  Future<void> pickImage(ReportImageSource source) async {
+    if (state.isPickingImage) return;
+
+    state = state.copyWith(isPickingImage: true, imageError: null);
 
     try {
-      final picker = ImagePicker();
+      final imagePicker = ref.read(imagePickerServiceProvider);
+      final image = await imagePicker.pickImage(source);
 
-      final image = await picker.pickImage(
-        source: source,
-        imageQuality: 80,
-        maxWidth: 1600,
-      );
+      if (!ref.mounted) return;
 
-      if (image != null) {
-        state = state.copyWith(selectedImage: image, clearImageError: true);
-      }
-    } on PlatformException {
       state = state.copyWith(
+        selectedImage: image ?? state.selectedImage,
+        isPickingImage: false,
+        imageError: null,
+      );
+    } on PlatformException {
+      if (!ref.mounted) return;
+
+      state = state.copyWith(
+        isPickingImage: false,
         imageError: 'Unable to access the selected image source.',
       );
     } catch (_) {
+      if (!ref.mounted) return;
+
       state = state.copyWith(
+        isPickingImage: false,
         imageError: 'Something went wrong while selecting the image.',
       );
     }
   }
 
   void removeImage() {
-    state = state.copyWith(clearImage: true, clearImageError: true);
+    state = state.copyWith(selectedImage: null, imageError: null);
   }
 
   void setSubmitting(bool value) {
     state = state.copyWith(isSubmitting: value);
   }
 
+  void setImageError(String? value) {
+    state = state.copyWith(imageError: value);
+  }
+
   void reset() {
-    state = const ReportItemState();
+    state = ReportItemState(formRevision: state.formRevision + 1);
   }
 }
 
 final reportItemProvider =
     NotifierProvider<ReportItemNotifier, ReportItemState>(
       ReportItemNotifier.new,
+      isAutoDispose: true,
     );
