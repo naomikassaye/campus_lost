@@ -33,6 +33,11 @@ class AuthController extends Notifier<AuthState> {
     } on AuthException catch (e) {
       state = AuthState(error: e.message);
       return false;
+    } catch (_) {
+      state = const AuthState(
+        error: 'An unexpected error occurred. Please try again.',
+      );
+      return false;
     }
   }
 
@@ -50,6 +55,11 @@ class AuthController extends Notifier<AuthState> {
       return true;
     } on AuthException catch (e) {
       state = AuthState(error: e.message);
+      return false;
+    } catch (_) {
+      state = const AuthState(
+        error: 'An unexpected error occurred. Please try again.',
+      );
       return false;
     }
   }

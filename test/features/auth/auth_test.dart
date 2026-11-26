@@ -3,8 +3,27 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:campus_lost/features/auth/data/in_memory_auth_repository.dart';
 import 'package:campus_lost/features/auth/domain/auth_repository.dart';
+import 'package:campus_lost/features/auth/domain/auth_user.dart';
 import 'package:campus_lost/features/auth/domain/auth_validators.dart';
 import 'package:campus_lost/features/auth/presentation/providers/auth_providers.dart';
+
+class _ThrowingRepository implements AuthRepository {
+  @override
+  Future<AuthUser> signIn({
+    required String email,
+    required String password,
+  }) async => throw StateError('boom');
+
+  @override
+  Future<AuthUser> register({
+    required String fullName,
+    required String email,
+    required String password,
+  }) async => throw StateError('boom');
+
+  @override
+  Future<void> signOut() async {}
+}
 
 void main() {
   group('AuthValidators', () {
@@ -102,6 +121,22 @@ void main() {
       expect(ok, isFalse);
       expect(container.read(currentUserProvider), isNull);
       expect(container.read(authControllerProvider).error, isNotNull);
+    });
+
+    test('unexpected errors stop loading and set a generic error', () async {
+      final c = ProviderContainer.test(
+        overrides: [
+          authRepositoryProvider.overrideWithValue(_ThrowingRepository()),
+        ],
+      );
+
+      final ok = await c
+          .read(authControllerProvider.notifier)
+          .signIn(email: 'student@aau.edu.et', password: 'password123');
+
+      expect(ok, isFalse);
+      expect(c.read(authControllerProvider).isLoading, isFalse);
+      expect(c.read(authControllerProvider).error, isNotNull);
     });
 
     test('signOut clears the current user', () async {

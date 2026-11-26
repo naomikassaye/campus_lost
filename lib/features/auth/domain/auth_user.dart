@@ -1,38 +1,13 @@
-class AuthUser {
-  const AuthUser({
-    required this.id,
-    required this.fullName,
-    required this.email,
-    this.isCustodian = false,
-  });
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
-  final String fullName;
-  final String email;
-  final bool isCustodian;
+part 'auth_user.freezed.dart';
 
-  AuthUser copyWith({
-    String? id,
-    String? fullName,
-    String? email,
-    bool? isCustodian,
-  }) {
-    return AuthUser(
-      id: id ?? this.id,
-      fullName: fullName ?? this.fullName,
-      email: email ?? this.email,
-      isCustodian: isCustodian ?? this.isCustodian,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      other is AuthUser &&
-      other.id == id &&
-      other.fullName == fullName &&
-      other.email == email &&
-      other.isCustodian == isCustodian;
-
-  @override
-  int get hashCode => Object.hash(id, fullName, email, isCustodian);
+@freezed
+abstract class AuthUser with _$AuthUser {
+  const factory AuthUser({
+    required String id,
+    required String fullName,
+    required String email,
+    @Default(false) bool isCustodian,
+  }) = _AuthUser;
 }
