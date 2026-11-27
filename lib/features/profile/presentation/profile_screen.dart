@@ -18,11 +18,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _confirmingClear = false;
 
   Future<void> _confirmClearCache() async {
-    await ref.read(cacheMaintenanceProvider).clear();
+    String message;
+    try {
+      await ref.read(cacheMaintenanceProvider).clear();
+      message = 'Cached data cleared.';
+    } catch (_) {
+      message = 'Could not clear cached data. Please try again.';
+    }
     if (!mounted) return;
     setState(() => _confirmingClear = false);
     ScaffoldMessenger.of(context)
-        .showSnackBar(const SnackBar(content: Text('Cached data cleared.')));
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _signOut() async {

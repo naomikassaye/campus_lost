@@ -8,6 +8,7 @@ import 'package:campus_lost/core/theme/theme_mode_provider.dart';
 import 'package:campus_lost/features/auth/domain/auth_repository.dart';
 import 'package:campus_lost/features/auth/domain/auth_user.dart';
 import 'package:campus_lost/features/auth/presentation/providers/auth_providers.dart';
+import 'package:campus_lost/features/profile/data/in_memory_cache_maintenance.dart';
 import 'package:campus_lost/features/profile/domain/cache_maintenance.dart';
 import 'package:campus_lost/features/profile/presentation/profile_screen.dart';
 import 'package:campus_lost/features/profile/presentation/providers/profile_providers.dart';
@@ -24,15 +25,6 @@ const _custodian = AuthUser(
   email: 'custodian@aau.edu.et',
   isCustodian: true,
 );
-
-class _FakeCache implements CacheMaintenance {
-  int clears = 0;
-
-  @override
-  Future<void> clear() async {
-    clears++;
-  }
-}
 
 class _FakeAuthRepository implements AuthRepository {
   int signOutCalls = 0;
@@ -60,7 +52,7 @@ class _FakeAuthRepository implements AuthRepository {
 Future<void> _pump(
   WidgetTester tester, {
   AuthUser user = _student,
-  _FakeCache? cache,
+  CacheMaintenance? cache,
   _FakeAuthRepository? auth,
 }) async {
   final router = GoRouter(
@@ -132,8 +124,13 @@ void main() {
     );
   });
 
-  testWidgets('clear cache asks for confirmation, then clears', (tester) async {
-    final cache = _FakeCache();
+  testWidgets('clear cache asks for confirmation, then actually clears data', (
+    tester,
+  ) async {
+    final cache = InMemoryCacheMaintenance();
+    await cache.save('draft', 'Sample draft');
+    expect(await cache.read('draft'), isNotNull);
+
     await _pump(tester, cache: cache);
 
     await tester.tap(find.text('Clear cached data'));
@@ -141,14 +138,16 @@ void main() {
     await tester.tap(find.text('Clear'));
     await tester.pumpAndSettle();
 
-    expect(cache.clears, 1);
+    expect(await cache.read('draft'), isNull);
     expect(find.text('Cached data cleared.'), findsOneWidget);
   });
 
   testWidgets('cancelling confirmation does not clear the cache', (
     tester,
   ) async {
-    final cache = _FakeCache();
+    final cache = InMemoryCacheMaintenance();
+    await cache.save('draft', 'Sample draft');
+
     await _pump(tester, cache: cache);
 
     await tester.tap(find.text('Clear cached data'));
@@ -156,7 +155,7 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
-    expect(cache.clears, 0);
+    expect(await cache.read('draft'), 'Sample draft');
   });
 
   testWidgets('sign out signs out and goes to login', (tester) async {
