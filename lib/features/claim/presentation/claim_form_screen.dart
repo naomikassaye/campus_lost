@@ -6,6 +6,7 @@ import 'package:campus_lost/features/claim/domain/claim_request.dart';
 import 'package:campus_lost/features/claim/presentation/providers/claims_provider.dart';
 import 'package:campus_lost/features/feed/presentation/providers/items_provider.dart';
 import 'package:campus_lost/features/feed/domain/item_report.dart';
+import 'package:go_router/go_router.dart';
 
 class ClaimFormScreen extends ConsumerStatefulWidget {
   const ClaimFormScreen({required this.itemId, super.key});
@@ -53,8 +54,7 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Claim submitted successfully.')),
       );
-
-      Navigator.of(context).pop();
+      context.pop();
     } catch (_) {
       if (!mounted) return;
 
@@ -94,6 +94,11 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
           if (user == null) {
             return const Center(
               child: Text('Please sign in to claim this item.'),
+            );
+          }
+          if (item.reporterId == user.id) {
+            return const Center(
+              child: Text('You cannot claim an item you reported.'),
             );
           }
 

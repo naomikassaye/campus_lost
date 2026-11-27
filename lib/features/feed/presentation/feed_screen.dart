@@ -37,12 +37,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           item.title.toLowerCase().contains(query) ||
           item.description.toLowerCase().contains(query);
 
-      final matchesType =
-          _typeFilter == null || item.type == _typeFilter;
+      final matchesType = _typeFilter == null || item.type == _typeFilter;
 
       final matchesCategory =
-          _categoryFilter == null ||
-          item.category == _categoryFilter;
+          _categoryFilter == null || item.category == _categoryFilter;
 
       final matchesStatus =
           _statusFilter == null || item.status == _statusFilter;
@@ -114,7 +112,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
                 if (filteredItems.isEmpty) {
                   return const Center(
-                    child: Text('No items match your search or filters.'),
+                    child: Text(
+                      'No items match your search or filters.',
+                    ),
                   );
                 }
 
@@ -135,13 +135,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         ),
                         title: Text(item.title),
                         subtitle: Text(
-                          '${item.type.name.toUpperCase()} • '
+                          '${item.type.label.toUpperCase()} • '
                           '${item.category.label} • ${item.location}\n'
                           '${item.description}',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        trailing: Text(item.status.name),
+                        trailing: Text(item.status.label),
                         isThreeLine: true,
                         onTap: () {
                           context.push(
@@ -178,7 +178,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ...ReportType.values.map(
                 (type) => DropdownMenuItem<ReportType?>(
                   value: type,
-                  child: Text(type.name.toUpperCase()),
+                  child: Text(type.label.toUpperCase()),
                 ),
               ),
             ],
@@ -216,7 +216,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ...ItemStatus.values.map(
                 (status) => DropdownMenuItem<ItemStatus?>(
                   value: status,
-                  child: Text(status.name),
+                  child: Text(status.label),
                 ),
               ),
             ],
