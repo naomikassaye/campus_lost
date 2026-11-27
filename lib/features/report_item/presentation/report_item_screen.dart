@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:campus_lost/features/auth/presentation/providers/auth_providers.dart';
+import 'package:campus_lost/features/feed/domain/item_report.dart';
+import 'package:campus_lost/features/feed/presentation/providers/items_provider.dart';
 import 'package:campus_lost/features/report_item/domain/models/report_item_enums.dart';
 import 'package:campus_lost/features/report_item/presentation/providers/report_item_provider.dart';
 import 'package:campus_lost/features/report_item/presentation/widgets/handover_point_field.dart';
@@ -21,9 +24,11 @@ class _ReportItemScreenState extends ConsumerState<ReportItemScreen> {
 
   int _lastFormRevision = 0;
 
-  void _prepareReport() {
+  Future<void> _submitReport() async {
     final notifier = ref.read(reportItemProvider.notifier);
     final report = ref.read(reportItemProvider);
+
+    if (report.isSubmitting) return;
 
     final isValid = _formKey.currentState?.validate() ?? false;
 
@@ -44,16 +49,66 @@ class _ReportItemScreenState extends ConsumerState<ReportItemScreen> {
       return;
     }
 
-    // The repository is not integrated yet.
-    // Do not claim that the report has been saved.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Your report is valid. Submission will be available '
-          'once the repository is integrated.',
+    // The report must be associated with an authenticated user.
+    final user = ref.read(currentUserProvider);
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please sign in before submitting a report.'),
         ),
-      ),
-    );
+      );
+      return;
+    }
+
+    final category = report.category;
+
+    // Defensive check in case the form validation is changed later.
+    if (category == null) return;
+
+    notifier.setSubmitting(true);
+
+    try {
+      final item = ItemReport(
+        // The in-memory repository assigns the actual ID in add().
+        id: 'pending',
+        type: report.reportType,
+        title: report.title.trim(),
+        description: report.description.trim(),
+        category: category,
+        location: report.location.trim(),
+        handoverPoint: report.reportType == ReportType.found
+            ? report.handoverPoint.trim()
+            : null,
+        // No image upload service exists yet, so imageUrl remains null.
+        reporterId: user.id,
+        createdAt: DateTime.now(),
+      );
+
+      await ref.read(itemsProvider.notifier).add(item);
+
+      if (!mounted) return;
+
+      notifier.reset();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your item report has been submitted successfully.'),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to submit your report. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        notifier.setSubmitting(false);
+      }
+    }
   }
 
   @override
@@ -87,38 +142,25 @@ class _ReportItemScreenState extends ConsumerState<ReportItemScreen> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-
               const SizedBox(height: 24),
-
               const ReportTypeSelector(),
-
               const SizedBox(height: 24),
-
               Text(
                 'Item Information',
                 style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
-
               const SizedBox(height: 16),
-
               const ItemInformationForm(),
-
               const SizedBox(height: 24),
-
               const ItemImagePicker(),
-
               const SizedBox(height: 24),
-
               const HandoverPointField(),
-
               const SizedBox(height: 32),
-
               ReportSubmitButton(
                 isSubmitting: isSubmitting,
-                onPressed: _prepareReport,
+                onPressed: _submitReport,
               ),
-
               const SizedBox(height: 24),
             ],
           ),
