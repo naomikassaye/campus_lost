@@ -21,3 +21,9 @@ abstract class ItemReport with _$ItemReport {
     @Default(ItemStatus.open) ItemStatus status,
   }) = _ItemReport;
 }
+
+extension ItemReportClaimable on ItemReport {
+  bool get isClaimable =>
+      type == ReportType.found &&
+      (status == ItemStatus.open || status == ItemStatus.held);
+}
