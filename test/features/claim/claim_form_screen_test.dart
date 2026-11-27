@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:campus_lost/core/router/app_routes.dart';
 import 'package:campus_lost/features/auth/domain/auth_user.dart';
 import 'package:campus_lost/features/auth/presentation/providers/auth_providers.dart';
 import 'package:campus_lost/features/claim/presentation/claim_form_screen.dart';
@@ -61,6 +63,7 @@ void main() {
       findsOneWidget,
     );
   });
+
   testWidgets('shows unavailable message for a returned item', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -84,6 +87,7 @@ void main() {
       findsOneWidget,
     );
   });
+
   testWidgets('shows validation message when claim form is empty', (
     tester,
   ) async {
@@ -125,10 +129,27 @@ void main() {
 
     addTearDown(container.dispose);
 
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const ClaimFormScreen(itemId: 'item-3'),
+        ),
+        GoRoute(
+          path: AppRoutes.itemDetails('item-3'),
+          builder: (context, state) =>
+              const Scaffold(body: Text('Item Details Destination')),
+        ),
+      ],
+    );
+
+    addTearDown(router.dispose);
+
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(home: ClaimFormScreen(itemId: 'item-3')),
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
 
@@ -153,5 +174,7 @@ void main() {
       ),
       isTrue,
     );
+
+    expect(find.text('Claim submitted successfully.'), findsOneWidget);
   });
 }

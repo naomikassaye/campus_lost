@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:campus_lost/features/feed/domain/item_report.dart';
 
+import 'package:campus_lost/core/router/app_routes.dart';
 import 'package:campus_lost/features/auth/presentation/providers/auth_providers.dart';
 import 'package:campus_lost/features/claim/domain/claim_request.dart';
 import 'package:campus_lost/features/claim/presentation/providers/claims_provider.dart';
 import 'package:campus_lost/features/feed/presentation/providers/items_provider.dart';
-import 'package:campus_lost/features/feed/domain/item_report.dart';
-import 'package:go_router/go_router.dart';
 
 class ClaimFormScreen extends ConsumerStatefulWidget {
   const ClaimFormScreen({required this.itemId, super.key});
@@ -37,34 +38,40 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
 
     setState(() => _isSubmitting = true);
 
+    final claim = ClaimRequest(
+      id: 'new-claim',
+      itemId: widget.itemId,
+      claimantId: user.id,
+      claimantName: user.fullName,
+      message: _messageController.text.trim(),
+      createdAt: DateTime.now(),
+    );
+
     try {
-      final claim = ClaimRequest(
-        id: 'new-claim',
-        itemId: widget.itemId,
-        claimantId: user.id,
-        claimantName: user.fullName,
-        message: _messageController.text.trim(),
-        createdAt: DateTime.now(),
-      );
-
       await ref.read(claimsProvider.notifier).add(claim);
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Claim submitted successfully.')),
-      );
-      context.pop();
     } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Failed to submit claim.')));
+      return;
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
       }
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Claim submitted successfully.')),
+    );
+
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.itemDetails(widget.itemId));
     }
   }
 
@@ -96,6 +103,7 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
               child: Text('Please sign in to claim this item.'),
             );
           }
+
           if (item.reporterId == user.id) {
             return const Center(
               child: Text('You cannot claim an item you reported.'),
@@ -154,7 +162,13 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
                       FilledButton(
                         onPressed: _isSubmitting ? null : _submitClaim,
                         child: _isSubmitting
-                            ? const CircularProgressIndicator()
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text('Submit Claim'),
                       ),
                     ],

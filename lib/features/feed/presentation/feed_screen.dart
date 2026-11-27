@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,10 +44,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       final matchesStatus =
           _statusFilter == null || item.status == _statusFilter;
 
-      return matchesSearch &&
-          matchesType &&
-          matchesCategory &&
-          matchesStatus;
+      return matchesSearch && matchesType && matchesCategory && matchesStatus;
     }).toList();
   }
 
@@ -57,9 +53,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final itemsAsync = ref.watch(itemsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CampusLost'),
-      ),
+      appBar: AppBar(title: const Text('CampusLost')),
       body: Column(
         children: [
           Padding(
@@ -85,9 +79,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           _buildFilters(),
           Expanded(
             child: itemsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stackTrace) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -112,9 +104,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
                 if (filteredItems.isEmpty) {
                   return const Center(
-                    child: Text(
-                      'No items match your search or filters.',
-                    ),
+                    child: Text('No items match your search or filters.'),
                   );
                 }
 
@@ -144,9 +134,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         trailing: Text(item.status.label),
                         isThreeLine: true,
                         onTap: () {
-                          context.push(
-                            AppRoutes.itemDetails(item.id),
-                          );
+                          context.push(AppRoutes.itemDetails(item.id));
                         },
                       ),
                     );
