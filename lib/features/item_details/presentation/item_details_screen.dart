@@ -4,8 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:campus_lost/core/router/app_routes.dart';
 import 'package:campus_lost/features/feed/presentation/providers/items_provider.dart';
-import 'package:campus_lost/features/feed/domain/item_status.dart';
-import 'package:campus_lost/features/report_item/domain/models/report_item_enums.dart';
+import 'package:campus_lost/features/feed/domain/item_report.dart';
 
 class ItemDetailsScreen extends ConsumerWidget {
   const ItemDetailsScreen({required this.itemId, super.key});
@@ -17,28 +16,17 @@ class ItemDetailsScreen extends ConsumerWidget {
     final itemAsync = ref.watch(itemByIdProvider(itemId));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Item Details'),
-      ),
+      appBar: AppBar(title: const Text('Item Details')),
       body: itemAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => Center(
-          child: Text('Something went wrong: $error'),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) =>
+            Center(child: Text('Something went wrong: $error')),
         data: (item) {
           if (item == null) {
-            return const Center(
-              child: Text('Item not found.'),
-            );
+            return const Center(child: Text('Item not found.'));
           }
 
-          final canClaim =
-              item.type == ReportType.found &&
-              (item.status == ItemStatus.open ||
-                  item.status == ItemStatus.held);
-
+          final canClaim = item.isClaimable;
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [

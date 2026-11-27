@@ -1,24 +1,19 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:campus_lost/features/auth/presentation/providers/auth_providers.dart';
 import 'package:campus_lost/features/claim/domain/claim_request.dart';
 import 'package:campus_lost/features/claim/presentation/providers/claims_provider.dart';
-import 'package:campus_lost/features/feed/domain/item_status.dart';
 import 'package:campus_lost/features/feed/presentation/providers/items_provider.dart';
+import 'package:campus_lost/features/feed/domain/item_report.dart';
 
 class ClaimFormScreen extends ConsumerStatefulWidget {
-  const ClaimFormScreen({
-    required this.itemId,
-    super.key,
-  });
+  const ClaimFormScreen({required this.itemId, super.key});
 
   final String itemId;
 
   @override
-  ConsumerState<ClaimFormScreen> createState() =>
-      _ClaimFormScreenState();
+  ConsumerState<ClaimFormScreen> createState() => _ClaimFormScreenState();
 }
 
 class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
@@ -63,9 +58,9 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
     } catch (_) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to submit claim.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to submit claim.')));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -80,24 +75,17 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Claim Item'),
-      ),
+      appBar: AppBar(title: const Text('Claim Item')),
       body: itemAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
-        error: (error, stackTrace) => const Center(
-          child: Text('Could not load item.'),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) =>
+            const Center(child: Text('Could not load item.')),
         data: (item) {
           if (item == null) {
-            return const Center(
-              child: Text('Item not found.'),
-            );
+            return const Center(child: Text('Item not found.'));
           }
 
-          if (item.status != ItemStatus.open) {
+          if (!item.isClaimable) {
             return const Center(
               child: Text('This item is no longer available to claim.'),
             );
@@ -110,12 +98,9 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
           }
 
           return claimsAsync.when(
-            loading: () => const Center(
-              child: CircularProgressIndicator(),
-            ),
-            error: (error, stackTrace) => const Center(
-              child: Text('Could not load claims.'),
-            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stackTrace) =>
+                const Center(child: Text('Could not load claims.')),
             data: (claims) {
               final alreadyClaimed = claims.any(
                 (claim) =>
@@ -150,8 +135,7 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
                         maxLines: 5,
                         decoration: const InputDecoration(
                           labelText: 'Why is this item yours?',
-                          hintText:
-                              'Describe details that can help verify ownership.',
+                          hintText: 'Describe details that can help verify ownership.',
                           border: OutlineInputBorder(),
                         ),
                         validator: (value) {
@@ -163,8 +147,7 @@ class _ClaimFormScreenState extends ConsumerState<ClaimFormScreen> {
                       ),
                       const SizedBox(height: 20),
                       FilledButton(
-                        onPressed:
-                            _isSubmitting ? null : _submitClaim,
+                        onPressed: _isSubmitting ? null : _submitClaim,
                         child: _isSubmitting
                             ? const CircularProgressIndicator()
                             : const Text('Submit Claim'),
